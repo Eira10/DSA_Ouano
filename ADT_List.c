@@ -66,7 +66,7 @@ List deletePos(List L, int pos){
     }
 }
 
-int locate(List L, int data){
+int locatee(List L, int data){
 
     int a;
 
