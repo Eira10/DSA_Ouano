@@ -1,0 +1,240 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 10
+#define NIL -1
+
+typedef struct {
+    int elem;
+    int next;
+} Cell;
+
+typedef struct {
+    Cell heap[MAX];
+    int avail;
+} VHeap;
+
+void initialize(VHeap *V);
+int allocSpace(VHeap *V);
+void deallocSpace(VHeap *V, int index);
+
+void insertFirst(int *L, VHeap *V, int elem);
+void insertLast(int *L, VHeap *V, int elem);
+void insertPos(int *L, VHeap *V, int elem, int pos);
+void insertSorted(int *L, VHeap *V, int elem);
+
+void delete(int *L, VHeap *V, int elem);
+void deleteAllOccurrence(int *L, VHeap *V, int elem);
+
+void displayList(int L, VHeap V);
+void displayFreeList(VHeap V);
+
+int main() {
+    VHeap V;
+    int L = NIL;
+
+    initialize(&V);
+
+    insertFirst(&L, &V, 5);
+    insertFirst(&L, &V, 3);
+    insertFirst(&L, &V, 1);
+
+    printf("After insertFirst:\n");
+    displayList(L, V);
+    displayFreeList(V);
+
+    insertLast(&L, &V, 7);
+    printf("\nAfter insertLast:\n");
+    displayList(L, V);
+    displayFreeList(V);
+
+    insertPos(&L, &V, 4, 2);
+    printf("\nAfter insertPos:\n");
+    displayList(L, V);
+    displayFreeList(V);
+
+    insertSorted(&L, &V, 6);
+    printf("\nAfter insertSorted:\n");
+    displayList(L, V);
+    displayFreeList(V);
+
+    delete(&L, &V, 3);
+    printf("\nAfter delete 3:\n");
+    displayList(L, V);
+    displayFreeList(V);
+
+    deleteAllOccurrence(&L, &V, 5);
+    printf("\nAfter deleteAllOccurrence 5:\n");
+    displayList(L, V);
+    displayFreeList(V);
+
+    return 0;
+}
+
+void initialize(VHeap *V) {
+    V->avail = 0;
+    for (int i = 0; i < MAX - 1; i++) {
+        V->heap[i].next = i + 1;
+    }
+    V->heap[MAX - 1].next = NIL;
+}
+
+int allocSpace(VHeap *V) {
+    if (V->avail == NIL) {
+        return NIL;
+    }
+
+    int index = V->avail;
+    V->avail = V->heap[index].next;
+    return index;
+}
+
+void deallocSpace(VHeap *V, int index) {
+    V->heap[index].next = V->avail;
+    V->avail = index;
+}
+
+void insertFirst(int *L, VHeap *V, int elem) {
+    int newCell = allocSpace(V);
+    if (newCell == NIL) {
+        return;
+    }
+
+    V->heap[newCell].elem = elem;
+    V->heap[newCell].next = *L;
+    *L = newCell;
+}
+
+void insertLast(int *L, VHeap *V, int elem) {
+    int newCell = allocSpace(V);
+    if (newCell == NIL) {
+        return;
+    }
+
+    V->heap[newCell].elem = elem;
+    V->heap[newCell].next = NIL;
+
+    if (*L == NIL) {
+        *L = newCell;
+        return;
+    }
+
+    int current = *L;
+    while (V->heap[current].next != NIL) {
+        current = V->heap[current].next;
+    }
+
+    V->heap[current].next = newCell;
+}
+
+void insertPos(int *L, VHeap *V, int elem, int pos) {
+    int newCell = allocSpace(V);
+    if (newCell == NIL) {
+        return;
+    }
+
+    V->heap[newCell].elem = elem;
+
+    if (pos == 0 || *L == NIL) {
+        V->heap[newCell].next = *L;
+        *L = newCell;
+        return;
+    }
+
+    int current = *L;
+    for (int i = 0; i < pos - 1 && V->heap[current].next != NIL; i++) {
+        current = V->heap[current].next;
+    }
+
+    V->heap[newCell].next = V->heap[current].next;
+    V->heap[current].next = newCell;
+}
+
+void insertSorted(int *L, VHeap *V, int elem) {
+    int newCell = allocSpace(V);
+    if (newCell == NIL) {
+        return;
+    }
+
+    V->heap[newCell].elem = elem;
+
+    if (*L == NIL || V->heap[*L].elem >= elem) {
+        V->heap[newCell].next = *L;
+        *L = newCell;
+        return;
+    }
+
+    int current = *L;
+    while (V->heap[current].next != NIL &&
+           V->heap[V->heap[current].next].elem < elem) {
+        current = V->heap[current].next;
+    }
+
+    V->heap[newCell].next = V->heap[current].next;
+    V->heap[current].next = newCell;
+}
+
+void delete(int *L, VHeap *V, int elem) {
+    int current = *L;
+    int prev = NIL;
+
+    while (current != NIL && V->heap[current].elem != elem) {
+        prev = current;
+        current = V->heap[current].next;
+    }
+
+    if (current == NIL) {
+        return;
+    }
+
+    if (prev == NIL) {
+        *L = V->heap[current].next;
+    } else {
+        V->heap[prev].next = V->heap[current].next;
+    }
+
+    deallocSpace(V, current);
+}
+
+void deleteAllOccurrence(int *L, VHeap *V, int elem) {
+    int current = *L;
+    int prev = NIL;
+
+    while (current != NIL) {
+        if (V->heap[current].elem == elem) {
+            int temp = current;
+            current = V->heap[current].next;
+
+            if (prev == NIL) {
+                *L = current;
+            } else {
+                V->heap[prev].next = current;
+            }
+
+            deallocSpace(V, temp);
+        } else {
+            prev = current;
+            current = V->heap[current].next;
+        }
+    }
+}
+
+void displayList(int L, VHeap V) {
+    printf("List: ");
+    int current = L;
+    while (current != NIL) {
+        printf("%d ", V.heap[current].elem);
+        current = V.heap[current].next;
+    }
+    printf("\n");
+}
+
+void displayFreeList(VHeap V) {
+    printf("Free list: ");
+    int current = V.avail;
+    while (current != NIL) {
+        printf("%d -> ", current);
+        current = V.heap[current].next;
+    }
+    printf("-1\n");
+}
