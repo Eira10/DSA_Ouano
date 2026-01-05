@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_BITS 8
+
+typedef struct {
+    unsigned int field : 8;
+} Set;
+
+void initialize(Set *set);
+void insert(Set *set, int element);
+void delete(Set *set, int element);
+bool find(Set set, int element);
+
+Set setUnion(Set A, Set B);
+Set intersection(Set A, Set B);
+Set difference(Set A, Set B);
+
+void display(Set set, char label[]);
+
+int main() {
+    Set A, B, C;
+
+    initialize(&A);
+    initialize(&B);
+
+    insert(&A, 0);
+    insert(&A, 4);
+    insert(&A, 5);
+
+    insert(&B, 2);
+    insert(&B, 5);
+
+    display(A, "Set A");
+    display(B, "Set B");
+
+    C = setUnion(A, B);
+    display(C, "Union (A ∪ B)");
+
+    C = intersection(A, B);
+    display(C, "Intersection (A ∩ B)");
+
+    C = difference(A, B);
+    display(C, "Difference (A - B)");
+
+    delete(&A, 5);
+    delete(&A, 4);
+    display(A, "Set A after deletions");
+
+    printf("\nFind 0 in A: %s\n", find(A, 0) ? "TRUE" : "FALSE");
+    printf("Find 5 in A: %s\n", find(A, 5) ? "TRUE" : "FALSE");
+
+    return 0;
+}
+
+void initialize(Set *set) {
+    set->field = 0;
+}
+
+void insert(Set *set, int element) {
+    if (element >= 0 && element < MAX_BITS) {
+        set->field |= (1 << element);
+    }
+}
+
+void delete(Set *set, int element) {
+    if (element >= 0 && element < MAX_BITS) {
+        set->field &= ~(1 << element);
+    }
+}
+
+bool find(Set set, int element) {
+    if (element < 0 || element >= MAX_BITS) {
+        return false;
+    }
+    return (set.field & (1 << element)) != 0;
+}
+
+Set setUnion(Set A, Set B) {
+    Set C;
+    C.field = A.field | B.field;
+    return C;
+}
+
+Set intersection(Set A, Set B) {
+    Set C;
+    C.field = A.field & B.field;
+    return C;
+}
+
+Set difference(Set A, Set B) {
+    Set C;
+    C.field = A.field & (~B.field);
+    return C;
+}
+
+void display(Set set, char label[]) {
+    printf("%s: {", label);
+
+    bool first = true;
+    for (int i = 0; i < MAX_BITS; i++) {
+        if (set.field & (1 << i)) {
+            if (!first) {
+                printf(", ");
+            }
+            printf("%d", i);
+            first = false;
+        }
+    }
+
+    printf("}\n");
+}
