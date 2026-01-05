@@ -1,0 +1,104 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_BITS (8 * sizeof(unsigned char))
+
+void initialize(unsigned char *set);
+void insert(unsigned char *set, int element);
+void delete(unsigned char *set, int element);
+bool find(unsigned char set, int element);
+
+unsigned char setUnion(unsigned char A, unsigned char B);
+unsigned char intersection(unsigned char A, unsigned char B);
+unsigned char difference(unsigned char A, unsigned char B);
+
+void display(unsigned char set, char label[]);
+
+int main() {
+    unsigned char A, B, C;
+
+    initialize(&A);
+    initialize(&B);
+
+    insert(&A, 1);
+    insert(&A, 6);
+
+    insert(&B, 3);
+    insert(&B, 6);
+    insert(&B, 7);
+
+    display(A, "Set A");
+    display(B, "Set B");
+
+    C = setUnion(A, B);
+    display(C, "Union (A ∪ B)");
+
+    C = intersection(A, B);
+    display(C, "Intersection (A ∩ B)");
+
+    C = difference(A, B);
+    display(C, "Difference (A - B)");
+
+    delete(&A, 6);
+    display(A, "Set A after delete 6");
+
+    delete(&A, 1);
+    display(A, "Set A after delete 1");
+
+    printf("\nFind 3 in B: %s\n", find(B, 3) ? "TRUE" : "FALSE");
+    printf("Find 5 in B: %s\n", find(B, 5) ? "TRUE" : "FALSE");
+
+    return 0;
+}
+
+void initialize(unsigned char *set) {
+    *set = 0;
+}
+
+void insert(unsigned char *set, int element) {
+    if (element >= 0 && element < MAX_BITS) {
+        *set |= (1 << element);
+    }
+}
+
+void delete(unsigned char *set, int element) {
+    if (element >= 0 && element < MAX_BITS) {
+        *set &= ~(1 << element);
+    }
+}
+
+bool find(unsigned char set, int element) {
+    if (element < 0 || element >= MAX_BITS) {
+        return false;
+    }
+    return (set & (1 << element)) != 0;
+}
+
+unsigned char setUnion(unsigned char A, unsigned char B) {
+    return A | B;
+}
+
+unsigned char intersection(unsigned char A, unsigned char B) {
+    return A & B;
+}
+
+unsigned char difference(unsigned char A, unsigned char B) {
+    return A & (~B);
+}
+
+void display(unsigned char set, char label[]) {
+    printf("%s: {", label);
+
+    bool first = true;
+    for (int i = 0; i < MAX_BITS; i++) {
+        if (set & (1 << i)) {
+            if (!first) {
+                printf(", ");
+            }
+            printf("%d", i);
+            first = false;
+        }
+    }
+
+    printf("}\n");
+}
